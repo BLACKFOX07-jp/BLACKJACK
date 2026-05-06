@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>カジノ・ブラックジャック：正確な清算版</title>
+    <style>
+        :root {
+            --gold: #d4af37;
+            --table-green: radial-gradient(#2e7d32, #1b5e20);
+            --wood: #3e2723;
+        }
+        body {
+            background-color: #000; color: white;
+            font-family: sans-serif; margin: 0; padding: 0; overflow: hidden; touch-action: manipulation;
+        }
+        @media screen and (orientation: portrait) {
+            #portrait-warning { display: flex; }
+            .main-wrapper { display: none; }
+        }
+        #portrait-warning {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #111; z-index: 9999; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+        }
+        .main-wrapper {
+            display: grid; grid-template-columns: 1fr 280px; height: 100vh; width: 100vw;
+        }
+        .table-area {
+            position: relative; background: var(--table-green); border: 8px solid var(--wood);
+            border-left: none; border-radius: 0 120px 120px 0; margin: 5px 0;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .sidebar {
+            display: flex; flex-direction: column; background: #111; border-left: 2px solid var(--gold);
+            padding: 15px; overflow-y: auto;
+        }
+        .stats-header {
+            font-size: 0.95rem; border-bottom: 2px solid var(--gold);
+            padding-bottom: 10px; margin-bottom: 10px; color: var(--gold); font-weight: bold;
+        }
+        .pot-display {
+            position: absolute; top: 15px; left: 20px;
+            background: rgba(0,0,0,0.85); border: 2px solid var(--gold);
+            padding: 10px 20px; border-radius: 25px; font-size: 1.4rem; color: #fff;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); z-index: 10;
+        }
+        .seat { position: absolute; text-align: center; width: 140px; }
+        .bet-badge {
+            background: #e91e63; color: white; padding: 2px 8px; border-radius: 10px;
+            font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; display: inline-block;
+        }
+        .dealer-seat { top: 15px; left: 50%; transform: translateX(-50%); }
+        .tom-seat { left: 40px; top: 40%; }
+        .bob-seat { right: 40px; top: 40%; }
+        .player-seat { bottom: 15px; left: 50%; transform: translateX(-50%); width: 220px; }
+
+        .hand { display: flex; gap: 5px; margin-top: 5px; height: 85px; justify-content: center; }
+        .card {
+            width: 55px; height: 80px; background: white; border-radius: 5px; color: black;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 4px; box-sizing: border-box; font-size: 1rem; font-weight: bold;
+        }
+        .card.red { color: #d32f2f; }
+        .card.hidden { background: #800; border: 2px solid white; }
+        .score-val { background: rgba(0,0,0,0.85); padding: 4px 12px; border-radius: 12px; font-size: 1.1rem; }
+        .ai-thought {
+            position: absolute; background: white; color: black; padding: 5px 10px;
+            border-radius: 12px; font-size: 0.8rem; bottom: 105%; left: 50%; transform: translateX(-50%);
+            display: none; z-index: 10; white-space: nowrap; font-weight: bold;
+        }
+        .controls { display: flex; flex-direction: column; gap: 12px; margin-top: auto; }
+        .bet-input-group { background: #222; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #444; }
+        input[type=range] { width: 100%; accent-color: var(--gold); }
+        .btn-row { display: flex; gap: 10px; }
+        button { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        .btn-hit { background: #2e7d32; color: white; }
+        .btn-stand { background: #c62828; color: white; }
+        .btn-deal { background: var(--gold); color: black; font-size: 1.1rem; box-shadow: 0 4px 0 #917726; }
+        button:disabled { background: #444 !important; color: #777 !important; }
+        
+        #msg-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            width: 380px; background: rgba(0,0,0,0.95); border: 2px solid var(--gold);
+            padding: 20px; border-radius: 15px; text-align: center;
+            z-index: 200; display: none; box-shadow: 0 0 40px rgba(0,0,0,1);
+        }
+        .result-item { font-size: 0.95rem; margin: 8px 0; border-bottom: 1px solid #333; padding-bottom: 5px; display: flex; justify-content: space-between;}
+        .res-win { color: #4caf50; font-weight: bold; }
+        .res-push { color: #2196f3; font-weight: bold; }
+        .res-lose { color: #f44336; }
+    </style>
+</head>
+<body>
+
+<div id="portrait-warning">🔄<br>スマホを横向きにしてください</div>
+
+<div class="main-wrapper">
+    <div class="table-area">
+        <div id="msg-overlay" onclick="this.style.display='none'"></div>
+        <div class="pot-display">💰 場にある合計: <span id="pot-amount">0</span> CP</div>
+
+        <div class="seat dealer-seat">
+            <div style="font-size:35px">👔</div>
+            <div style="font-size:0.75rem; color:var(--gold)">ディーラー</div>
+            <div id="dealer-score" class="score-val">?</div>
+            <div id="dealer-hand" class="hand"></div>
+        </div>
+
+        <div class="seat tom-seat">
+            <div id="tom-thought" class="ai-thought"></div>
+            <div id="tom-bet-display" class="bet-badge">待機中</div><br>
+            <div style="font-size:30px">🦊</div>
+            <div style="font-size:0.75rem">TOM (<span id="tom-money">1000</span>)</div>
+            <div id="tom-score" class="score-val">0</div>
+            <div id="tom-hand" class="hand"></div>
+        </div>
+
+        <div class="seat bob-seat">
+            <div id="bob-thought" class="ai-thought"></div>
+            <div id="bob-bet-display" class="bet-badge">待機中</div><br>
+            <div style="font-size:30px">🐻</div>
+            <div style="font-size:0.75rem">BOB (<span id="bob-money">1000</span>)</div>
+            <div id="bob-score" class="score-val">0</div>
+            <div id="bob-hand" class="hand"></div>
+        </div>
+
+        <div class="seat player-seat">
+            <div id="player-score" class="score-val" style="color:var(--gold); border:1px solid var(--gold);">0</div>
+            <div style="font-size:30px">👤</div>
+            <div id="player-bet-display" class="bet-badge" style="background:var(--gold); color:black;">BET: 0</div><br>
+            <div id="player-hand" class="hand"></div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="stats-header">
+            あなたの所持金: <span id="player-total">1000</span> CP<br>
+            ディーラー収益: <span id="dealer-vault">0</span> CP
+        </div>
+        <div class="controls">
+            <div class="bet-input-group">
+                <span style="font-size:0.85rem">賭け金: <b id="bet-val">100</b> CP</span>
+                <input type="range" id="bet-slider" min="10" max="1000" step="10" value="100" oninput="updateBet(this.value)">
+            </div>
+            <div class="btn-row">
+                <button id="hit-btn" class="btn-hit" onclick="playerAction('hit')" disabled>ヒット</button>
+                <button id="stand-btn" class="btn-stand" onclick="playerAction('stand')" disabled>スタンド</button>
+            </div>
+            <button id="deal-btn" class="btn-deal" onclick="startRound()">勝負開始！</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let deck, pot = 0, vault = 0, currentBet = 100;
+    let data = {
+        player: { name: 'あなた', hand: [], money: 1000, bet: 0 },
+        tom: { id: 'tom', name: 'TOM', hand: [], money: 1000, bet: 0 },
+        bob: { id: 'bob', name: 'BOB', hand: [], money: 1000, bet: 0 },
+        dealer: { hand: [] }
+    };
+
+    function updateBet(v) { currentBet = parseInt(v); document.getElementById('bet-val').innerText = v; }
+    
+    function refreshPot() {
+        // 全プレイヤーのBET額の純粋な合計を表示
+        const total = data.player.bet + data.tom.bet + data.bob.bet;
+        document.getElementById('pot-amount').innerText = total;
+        return total;
+    }
+
+    function updateStats() {
+        document.getElementById('player-total').innerText = data.player.money;
+        document.getElementById('tom-money').innerText = data.tom.money;
+        document.getElementById('bob-money').innerText = data.bob.money;
+        document.getElementById('dealer-vault').innerText = vault;
+        refreshPot();
+    }
+
+    function calc(hand) {
+        let s = hand.reduce((a, b) => a + b.w, 0);
+        let aces = hand.filter(c => c.v === 'A').length;
+        while(s > 21 && aces > 0) { s -= 10; aces--; }
+        return s;
+    }
+
+    async function aiThink(ai, mode) {
+        const bubble = document.getElementById(`${ai.id}-thought`);
+        const badge = document.getElementById(`${ai.id}-bet-display`);
+        bubble.style.display = 'block';
+        if(mode === 'bet') {
+            bubble.innerText = "考え中..."; await new Promise(r => setTimeout(r, 400));
+            // 所持金に合わせてランダムに賭ける
+            ai.bet = Math.floor(Math.random() * Math.min(ai.money, 500) / 10 + 5) * 10;
+            if(ai.bet > ai.money) ai.bet = ai.money;
+            ai.money -= ai.bet;
+            badge.innerText = "BET: " + ai.bet;
+        } else {
+            while(calc(ai.hand) < 17) {
+                bubble.innerText = "ヒット！"; await new Promise(r => setTimeout(r, 500));
+                ai.hand.push(deck.pop()); updateUI();
+            }
+            bubble.innerText = calc(ai.hand) > 21 ? "バースト！" : "スタンド";
+        }
+        updateStats(); await new Promise(r => setTimeout(r, 400)); bubble.style.display = 'none';
+    }
+
+    async function startRound() {
+        if(data.player.money < currentBet) return alert("チップが足りません！");
+        
+        document.getElementById('deal-btn').disabled = true;
+        document.getElementById('msg-overlay').style.display = "none";
+        
+        // プレイヤーのベット
+        data.player.bet = currentBet;
+        data.player.money -= currentBet;
+        document.getElementById('player-bet-display').innerText = "BET: " + currentBet;
+
+        // AIのベット
+        await aiThink(data.tom, 'bet');
+        await aiThink(data.bob, 'bet');
+        
+        updateStats(); // ここで「場にある合計」が正しく計算される
+
+        deck = [];
+        const suits = ['♠','♥','♦','♣'];
+        const vals = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+        for(let s of suits) for(let v of vals) deck.push({s, v, w: (parseInt(v)||10), c: (s==='♥'||s==='♦')?'red':'black'});
+        deck.filter(c => c.v === 'A').forEach(c => c.w = 11);
+        deck.sort(() => Math.random() - 0.5);
+
+        data.player.hand = [deck.pop(), deck.pop()];
+        data.tom.hand = [deck.pop(), deck.pop()];
+        data.bob.hand = [deck.pop(), deck.pop()];
+        data.dealer.hand = [deck.pop(), deck.pop()];
+        
+        updateUI();
+        document.getElementById('hit-btn').disabled = false;
+        document.getElementById('stand-btn').disabled = false;
+    }
+
+    function updateUI(showAll = false) {
+        for(let k in data) {
+            const h = data[k].hand; if(!h) continue;
+            document.getElementById(`${k}-hand`).innerHTML = h.map((c, i) => 
+                `<div class="card ${c.c} ${k==='dealer'&&!showAll&&i===0?'hidden':''}">
+                ${k==='dealer'&&!showAll&&i===0 ? '' : `<div>${c.v}</div><div style="font-size:2rem; align-self:center">${c.s}</div><div style="transform:rotate(180deg)">${c.v}</div>`}
+                </div>`).join('');
+            document.getElementById(`${k}-score`).innerText = (k==='dealer'&&!showAll) ? "?" : calc(h);
+        }
+    }
+
+    function playerAction(t) {
+        if(t === 'hit') {
+            data.player.hand.push(deck.pop()); updateUI();
+            if(calc(data.player.hand) > 21) finalize();
+        } else { finalize(); }
+    }
+
+    async function finalize() {
+        document.getElementById('hit-btn').disabled = true;
+        document.getElementById('stand-btn').disabled = true;
+        await aiThink(data.tom, 'play');
+        await aiThink(data.bob, 'play');
+
+        while(calc(data.dealer.hand) < 17) {
+            data.dealer.hand.push(deck.pop()); updateUI(true);
+            await new Promise(r => setTimeout(r, 600));
+        }
+        updateUI(true);
+
+        const ds = calc(data.dealer.hand);
+        const currentPot = refreshPot(); // 最終的な合計額
+        let winners = [], pushers = [];
+        let totalRefund = 0;
+        let logHtml = `<div style="font-size:1.2rem; color:var(--gold); margin-bottom:10px; border-bottom:2px solid var(--gold)">【清算明細書】</div>`;
+
+        // 判定処理
+        for(let k of ['player', 'tom', 'bob']) {
+            const sc = calc(data[k].hand);
+            const b = data[k].bet;
+            const name = data[k].name;
+
+            if (sc <= 21 && (ds > 21 || sc > ds)) {
+                winners.push(k);
+            } else if (sc <= 21 && sc === ds) {
+                pushers.push(k);
+                data[k].money += b;
+                totalRefund += b;
+                logHtml += `<div class="result-item"><span>${name}</span><span class="res-push">引分：${b}CP返却</span></div>`;
+            } else {
+                logHtml += `<div class="result-item"><span>${name}</span><span class="res-lose">敗北：${b}CP没収</span></div>`;
+            }
+        }
+
+        // 配当の分配
+        let remainingPot = currentPot - totalRefund;
+        if (winners.length > 0) {
+            const share = Math.floor(remainingPot / winners.length);
+            winners.forEach(w => {
+                data[w].money += share;
+                logHtml += `<div class="result-item"><span>${data[w].name}</span><span class="res-win">勝利：${share}CP獲得</span></div>`;
+            });
+        } else if (remainingPot > 0) {
+            vault += remainingPot;
+            logHtml += `<div class="result-item"><span>カジノ</span><span class="res-win">収益：+${remainingPot}CP</span></div>`;
+        }
+
+        const overlay = document.getElementById('msg-overlay');
+        overlay.innerHTML = logHtml + `<div style="margin-top:15px; font-size:0.8rem; color:#888;">[クリックして閉じる]</div>`;
+        overlay.style.display = "block";
+        
+        // データのクリーンアップ
+        data.player.bet = 0; data.tom.bet = 0; data.bob.bet = 0;
+        updateStats();
+        document.getElementById('deal-btn').disabled = false;
+        ['tom', 'bob'].forEach(id => document.getElementById(`${id}-bet-display`).innerText = "待機中");
+    }
+</script>
+</body>
+</html>
