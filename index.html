@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>カジノ・ブラックジャック：視認性・演出改善版</title>
+    <title>ブラックジャック：レイアウト完全修正版</title>
     <style>
         :root {
             --gold: #d4af37;
@@ -38,80 +38,82 @@
         }
 
         .sidebar {
-            width: 240px; background: var(--sidebar-bg);
+            width: 220px; background: var(--sidebar-bg);
             display: flex; flex-direction: column;
-            padding: 15px; border-left: 2px solid var(--gold);
+            padding: 12px; border-left: 2px solid var(--gold);
         }
 
         .stats-header {
-            font-size: 0.85rem; border-bottom: 1px solid var(--gold);
-            padding-bottom: 10px; margin-bottom: 10px; color: var(--gold);
+            font-size: 0.8rem; border-bottom: 1px solid var(--gold);
+            padding-bottom: 8px; margin-bottom: 8px; color: var(--gold);
         }
 
         .pot-display {
             position: absolute; top: 10px; left: 15px;
             background: rgba(0,0,0,0.7); border: 1px solid var(--gold);
-            padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; z-index: 5;
+            padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; z-index: 10;
         }
 
-        /* 座席の再配置（重なり防止） */
-        .seat { position: absolute; text-align: center; width: 120px; }
-        .dealer-seat { top: 5%; left: 50%; transform: translateX(-50%); } /* 少し上へ */
-        .tom-seat { left: 5%; top: 30%; }
-        .bob-seat { right: 5%; top: 30%; }
-        .player-seat { bottom: 8%; left: 50%; transform: translateX(-50%); width: 200px; }
+        /* --- 座席レイアウトの完全分離 --- */
+        .seat { position: absolute; text-align: center; width: 110px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* ディーラーを一番上に */
+        .dealer-seat { top: 2%; left: 50%; transform: translateX(-50%); } 
+        
+        /* AIを左右の中段に逃がす */
+        .tom-seat { left: 5%; top: 35%; }
+        .bob-seat { right: 5%; top: 35%; }
+        
+        /* プレイヤーを一番下に */
+        .player-seat { bottom: 2%; left: 50%; transform: translateX(-50%); width: 180px; flex-direction: column-reverse; }
 
         .score-val {
-            display: inline-block; background: rgba(0,0,0,0.8);
-            padding: 2px 10px; border-radius: 10px; font-size: 0.85rem; margin-top: 4px;
+            background: rgba(0,0,0,0.85); padding: 2px 10px; border-radius: 10px; 
+            font-size: 0.8rem; margin: 2px 0; border: 1px solid transparent;
         }
+        .player-seat .score-val { border-color: var(--gold); color: var(--gold); }
 
-        /* カードとバッジの重なり修正 */
-        .hand { 
-            display: flex; margin-top: 10px; justify-content: center; height: 75px;
-        }
+        .hand { display: flex; justify-content: center; height: 65px; margin: 3px 0; }
         .card {
-            width: 48px; height: 70px; background: white; border-radius: 4px; color: black;
+            width: 44px; height: 62px; background: white; border-radius: 4px; color: black;
             display: flex; flex-direction: column; justify-content: space-between;
-            padding: 3px; font-size: 0.8rem; font-weight: bold;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3); margin-left: -20px;
+            padding: 2px; font-size: 0.75rem; font-weight: bold;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.4); margin-left: -22px;
         }
         .card:first-child { margin-left: 0; }
         .card.red { color: #d32f2f; }
-        .card.hidden { background: linear-gradient(45deg, #800, #b00); border: 1px solid #fff; }
+        .card.hidden { background: linear-gradient(135deg, #800, #b00); border: 1px solid #fff; }
 
         .bet-badge {
             background: #e91e63; color: white; padding: 2px 8px; border-radius: 10px;
-            font-size: 0.75rem; font-weight: bold; 
-            display: inline-block; margin-bottom: 5px; /* カードの上に配置 */
+            font-size: 0.7rem; font-weight: bold; margin-bottom: 2px;
         }
 
-        .controls { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
-        input[type=range] { width: 100%; height: 25px; accent-color: var(--gold); }
+        /* --- 操作系 --- */
+        .controls { margin-top: auto; display: flex; flex-direction: column; gap: 6px; }
+        input[type=range] { width: 100%; height: 30px; accent-color: var(--gold); }
         
         button {
-            padding: 12px; border-radius: 8px; border: none; font-weight: bold;
-            font-size: 1rem; cursor: pointer;
+            padding: 10px; border-radius: 8px; border: none; font-weight: bold;
+            font-size: 0.95rem; cursor: pointer;
         }
         .btn-hit { background: #2e7d32; color: white; }
         .btn-stand { background: #c62828; color: white; }
-        .btn-deal { background: var(--gold); color: black; }
-        button:disabled { background: #444 !important; color: #777 !important; }
+        .btn-deal { background: var(--gold); color: black; padding: 14px; }
+        button:disabled { background: #333 !important; color: #666 !important; }
 
         #msg-overlay {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-            width: 85%; max-width: 420px; background: rgba(0,0,0,0.95);
-            border: 2px solid var(--gold); padding: 20px; border-radius: 12px;
+            width: 85%; max-width: 380px; background: rgba(0,0,0,0.96);
+            border: 2px solid var(--gold); padding: 15px; border-radius: 12px;
             z-index: 100; display: none;
         }
-        .result-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
-        .res-win { color: #4caf50; font-weight: bold; }
-        .res-push { color: #2196f3; }
-
+        .result-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #333; font-size: 0.85rem; }
+        
         .ai-thought {
             position: absolute; background: white; color: black; padding: 2px 8px;
-            border-radius: 8px; font-size: 0.7rem; bottom: 100%; left: 50%;
-            transform: translateX(-50%); display: none; white-space: nowrap; z-index: 10;
+            border-radius: 8px; font-size: 0.7rem; bottom: 105%; left: 50%;
+            transform: translateX(-50%); display: none; white-space: nowrap; z-index: 20;
         }
     </style>
 </head>
@@ -124,51 +126,54 @@
         <div id="msg-overlay" onclick="this.style.display='none'"></div>
         <div class="pot-display">💰 場にある合計: <span id="pot-amount">0</span> CP</div>
 
+        <!-- ディーラー：最上部 -->
         <div class="seat dealer-seat">
-            <div style="font-size:24px">👔</div>
+            <div style="font-size:20px">👔</div>
             <div id="dealer-score" class="score-val">?</div>
             <div id="dealer-hand" class="hand"></div>
         </div>
 
+        <!-- AI：中段 -->
         <div class="seat tom-seat">
             <div id="tom-thought" class="ai-thought"></div>
-            <span id="tom-bet-display" class="bet-badge">待機中</span><br>
-            <div style="font-size:24px">🦊</div>
-            <div style="font-size:0.7rem">TOM: <span id="tom-money">1000</span></div>
+            <span id="tom-bet-display" class="bet-badge">待機中</span>
+            <div style="font-size:20px">🦊</div>
+            <div style="font-size:0.65rem; margin-bottom:2px">TOM: <span id="tom-money">1000</span></div>
             <div id="tom-score" class="score-val">0</div>
             <div id="tom-hand" class="hand"></div>
         </div>
 
         <div class="seat bob-seat">
             <div id="bob-thought" class="ai-thought"></div>
-            <span id="bob-bet-display" class="bet-badge">待機中</span><br>
-            <div style="font-size:24px">🐻</div>
-            <div style="font-size:0.7rem">BOB: <span id="bob-money">1000</span></div>
+            <span id="bob-bet-display" class="bet-badge">待機中</span>
+            <div style="font-size:20px">🐻</div>
+            <div style="font-size:0.65rem; margin-bottom:2px">BOB: <span id="bob-money">1000</span></div>
             <div id="bob-score" class="score-val">0</div>
             <div id="bob-hand" class="hand"></div>
         </div>
 
+        <!-- プレイヤー：最下部（重なり防止のため逆順レイアウト） -->
         <div class="seat player-seat">
-            <span id="player-bet-display" class="bet-badge" style="background:var(--gold); color:#000;">BET: 0</span><br>
-            <div id="player-score" class="score-val" style="border:1px solid var(--gold); color:var(--gold);">0</div>
-            <div style="font-size:28px">👤</div>
+            <span id="player-bet-display" class="bet-badge" style="background:var(--gold); color:#000;">BET: 0</span>
+            <div id="player-score" class="score-val">0</div>
             <div id="player-hand" class="hand"></div>
+            <div style="font-size:24px">👤</div>
         </div>
     </div>
 
     <div class="sidebar">
         <div class="stats-header">
             所持金: <span id="player-total">1000</span> CP<br>
-            カジノ収益: <span id="dealer-vault">0</span> CP
+            カジノ: <span id="dealer-vault">0</span> CP
         </div>
         
         <div class="controls">
-            <div style="text-align:center; font-size:0.8rem;">賭け金: <b id="bet-val">100</b></div>
+            <div style="text-align:center; font-size:0.75rem;">BET: <b id="bet-val">100</b></div>
             <input type="range" id="bet-slider" min="10" max="500" step="10" value="100" oninput="updateBet(this.value)">
             
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                <button id="hit-btn" class="btn-hit" onclick="playerAction('hit')" disabled>ヒット</button>
-                <button id="stand-btn" class="btn-stand" onclick="playerAction('stand')" disabled>スタンド</button>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                <button id="hit-btn" class="btn-hit" onclick="playerAction('hit')" disabled>HIT</button>
+                <button id="stand-btn" class="btn-stand" onclick="playerAction('stand')" disabled>STAND</button>
             </div>
             <button id="deal-btn" class="btn-deal" onclick="startRound()">勝負開始！</button>
         </div>
@@ -217,11 +222,11 @@
         } else {
             bubble.style.display = 'block';
             while(calc(ai.hand) < 17) {
-                bubble.innerText = "ヒット！"; await new Promise(r => setTimeout(r, 800));
+                bubble.innerText = "HIT!"; await new Promise(r => setTimeout(r, 900));
                 ai.hand.push(deck.pop()); updateUI();
             }
-            bubble.innerText = calc(ai.hand) > 21 ? "バースト！" : "スタンド";
-            await new Promise(r => setTimeout(r, 1000));
+            bubble.innerText = calc(ai.hand) > 21 ? "BUST!" : "STAND";
+            await new Promise(r => setTimeout(r, 1200));
             bubble.style.display = 'none';
         }
         updateStats();
@@ -229,7 +234,6 @@
 
     async function startRound() {
         if(data.player.money < currentBet) return alert("チップが足りません！");
-        
         document.getElementById('deal-btn').disabled = true;
         document.getElementById('msg-overlay').style.display = "none";
         
@@ -262,7 +266,7 @@
             const h = data[k].hand; if(!h) continue;
             document.getElementById(`${k}-hand`).innerHTML = h.map((c, i) => 
                 `<div class="card ${c.c} ${k==='dealer'&&!showAll&&i===0?'hidden':''}">
-                ${k==='dealer'&&!showAll&&i===0 ? '' : `<div>${c.v}</div><div style="font-size:1.2rem; align-self:center">${c.s}</div><div style="transform:rotate(180deg)">${c.v}</div>`}
+                ${k==='dealer'&&!showAll&&i===0 ? '' : `<div>${c.v}</div><div style="font-size:1.1rem; align-self:center">${c.s}</div><div style="transform:rotate(180deg)">${c.v}</div>`}
                 </div>`).join('');
             document.getElementById(`${k}-score`).innerText = (k==='dealer'&&!showAll) ? "?" : calc(h);
         }
@@ -279,36 +283,34 @@
         document.getElementById('hit-btn').disabled = true;
         document.getElementById('stand-btn').disabled = true;
         
-        // AIの動作
         await aiThink(data.tom, 'play');
         await aiThink(data.bob, 'play');
 
-        // ディーラーのカード公開とドロー（ゆっくり演出）
+        // ディーラーのターン：じっくり見せる
         updateUI(true);
-        await new Promise(r => setTimeout(r, 1200));
+        await new Promise(r => setTimeout(r, 1500)); // 公開して一呼吸
 
         while(calc(data.dealer.hand) < 17) {
             data.dealer.hand.push(deck.pop()); updateUI(true);
-            await new Promise(r => setTimeout(r, 1200)); // 1.2秒間隔
+            await new Promise(r => setTimeout(r, 1500)); // 1.5秒間隔でカードを引く
         }
         
-        await new Promise(r => setTimeout(r, 1000)); // 最終結果表示前のタメ
+        await new Promise(r => setTimeout(r, 1200)); // 精算前のタメ
 
         const ds = calc(data.dealer.hand);
         const currentPot = refreshPot();
         let winners = [], pushers = [], totalRefund = 0;
-        let logHtml = `<div style="color:var(--gold); font-weight:bold; border-bottom:2px solid var(--gold); margin-bottom:12px; font-size:1.1rem;">【 本日の精算書 】</div>`;
+        let logHtml = `<div style="color:var(--gold); font-weight:bold; border-bottom:1px solid var(--gold); margin-bottom:12px; text-align:center;">ROUND RESULT</div>`;
 
         for(let k of ['player', 'tom', 'bob']) {
             const sc = calc(data[k].hand);
             const b = data[k].bet;
-            if (sc <= 21 && (ds > 21 || sc > ds)) {
-                winners.push(k);
-            } else if (sc <= 21 && sc === ds) {
+            if (sc <= 21 && (ds > 21 || sc > ds)) winners.push(k);
+            else if (sc <= 21 && sc === ds) {
                 pushers.push(k); data[k].money += b; totalRefund += b;
-                logHtml += `<div class="result-item"><span>${data[k].name}</span><span class="res-push">引き分け（返却）</span></div>`;
+                logHtml += `<div class="result-item"><span>${data[k].name}</span><span style="color:#2196f3">PUSH</span></div>`;
             } else {
-                logHtml += `<div class="result-item"><span>${data[k].name}</span><span style="color:#888">敗北（没収）</span></div>`;
+                logHtml += `<div class="result-item"><span>${data[k].name}</span><span style="color:#888">LOSE</span></div>`;
             }
         }
 
@@ -317,15 +319,15 @@
             const share = Math.floor(remainingPot / winners.length);
             winners.forEach(w => {
                 data[w].money += share;
-                logHtml += `<div class="result-item"><span>${data[w].name}</span><span class="res-win">勝利：+${share} CP</span></div>`;
+                logHtml += `<div class="result-item"><span>${data[w].name}</span><span style="color:#4caf50">WIN (+${share})</span></div>`;
             });
         } else if (remainingPot > 0) {
             vault += remainingPot;
-            logHtml += `<div class="result-item"><span>カジノ</span><span class="res-win">収益：+${remainingPot} CP</span></div>`;
+            logHtml += `<div class="result-item"><span>CASINO</span><span style="color:#4caf50">PROFIT (+${remainingPot})</span></div>`;
         }
 
         const overlay = document.getElementById('msg-overlay');
-        overlay.innerHTML = logHtml + `<div style="margin-top:15px; text-align:center; font-size:0.7rem; opacity:0.6;">[ 画面をタップして次へ ]</div>`;
+        overlay.innerHTML = logHtml + `<div style="margin-top:10px; text-align:center; font-size:0.7rem; opacity:0.5;">[ TAP TO CLOSE ]</div>`;
         overlay.style.display = "block";
         
         data.player.bet = data.tom.bet = data.bob.bet = 0;
