@@ -3,142 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ブラックジャック：レイアウト完全修正版</title>
+    <title>ブラックジャック：究極レスポンシブ・サウンド版</title>
     <style>
         :root {
             --gold: #d4af37;
             --table-green: radial-gradient(circle at center, #2e7d32, #1b5e20);
             --wood: #3e2723;
             --sidebar-bg: #1a1a1a;
+            --card-w: 6vh;
+            --card-h: 8.5vh;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
-            background-color: #000; color: white;
+            background-color: #121212; color: white;
             font-family: 'Helvetica Neue', Arial, sans-serif;
             margin: 0; padding: 0; overflow: hidden;
             height: 100vh; width: 100vw;
+            display: flex; justify-content: center; align-items: center;
         }
-
+        .app-container {
+            display: flex; width: 100%; height: 100%;
+            max-width: 1400px; max-height: 850px;
+            background: #000; position: relative;
+        }
         @media screen and (orientation: portrait) {
             #portrait-warning { display: flex; }
-            .main-wrapper { display: none; }
+            .app-container { display: none; }
         }
         #portrait-warning {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #111; z-index: 9999; flex-direction: column;
             justify-content: center; align-items: center; text-align: center;
         }
-
-        .main-wrapper { display: flex; height: 100vh; width: 100vw; }
-
         .table-area {
             flex: 1; position: relative; background: var(--table-green);
-            border: 6px solid var(--wood); border-radius: 0 40px 40px 0;
-            margin: 5px; overflow: hidden;
+            border: 8px solid var(--wood); border-radius: 20px;
+            margin: 10px; overflow: hidden;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.3);
         }
-
         .sidebar {
             width: 220px; background: var(--sidebar-bg);
             display: flex; flex-direction: column;
-            padding: 12px; border-left: 2px solid var(--gold);
+            padding: 15px; border-left: 2px solid var(--gold);
         }
-
+        @media (max-height: 500px) {
+            .sidebar { width: 160px; padding: 8px; }
+            .btn-deal { padding: 10px !important; }
+        }
         .stats-header {
-            font-size: 0.8rem; border-bottom: 1px solid var(--gold);
-            padding-bottom: 8px; margin-bottom: 8px; color: var(--gold);
+            font-size: 0.9rem; border-bottom: 1px solid var(--gold);
+            padding-bottom: 10px; margin-bottom: 15px; color: var(--gold);
         }
-
         .pot-display {
-            position: absolute; top: 10px; left: 15px;
-            background: rgba(0,0,0,0.7); border: 1px solid var(--gold);
-            padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; z-index: 10;
+            position: absolute; top: 15px; left: 20px;
+            background: rgba(0,0,0,0.75); border: 1px solid var(--gold);
+            padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; z-index: 10;
         }
-
-        /* --- 座席レイアウトの完全分離 --- */
-        .seat { position: absolute; text-align: center; width: 110px; display: flex; flex-direction: column; align-items: center; }
-        
-        /* ディーラーを一番上に */
-        .dealer-seat { top: 2%; left: 50%; transform: translateX(-50%); } 
-        
-        /* AIを左右の中段に逃がす */
-        .tom-seat { left: 5%; top: 35%; }
-        .bob-seat { right: 5%; top: 35%; }
-        
-        /* プレイヤーを一番下に */
-        .player-seat { bottom: 2%; left: 50%; transform: translateX(-50%); width: 180px; flex-direction: column-reverse; }
-
+        .seat { position: absolute; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .dealer-seat { top: 5%; left: 50%; transform: translateX(-50%); } 
+        .tom-seat { left: 8%; top: 30%; }
+        .bob-seat { right: 8%; top: 30%; }
+        .player-seat { bottom: 5%; left: 50%; transform: translateX(-50%); width: 220px; flex-direction: column; }
         .score-val {
-            background: rgba(0,0,0,0.85); padding: 2px 10px; border-radius: 10px; 
-            font-size: 0.8rem; margin: 2px 0; border: 1px solid transparent;
+            background: rgba(0,0,0,0.85); padding: 3px 12px; border-radius: 12px; 
+            font-size: 0.9rem; margin: 4px 0; border: 1px solid transparent;
         }
-        .player-seat .score-val { border-color: var(--gold); color: var(--gold); }
-
-        .hand { display: flex; justify-content: center; height: 65px; margin: 3px 0; }
+        .player-seat .score-val { border-color: var(--gold); color: var(--gold); font-weight: bold; }
+        .hand { display: flex; justify-content: center; height: var(--card-h); margin: 5px 0; min-width: 60px; }
         .card {
-            width: 44px; height: 62px; background: white; border-radius: 4px; color: black;
+            width: var(--card-w); height: var(--card-h); background: white; border-radius: 5px; color: black;
             display: flex; flex-direction: column; justify-content: space-between;
-            padding: 2px; font-size: 0.75rem; font-weight: bold;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.4); margin-left: -22px;
+            padding: 3px; font-size: 0.8rem; font-weight: bold;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.5); margin-left: calc(var(--card-w) * -0.5);
         }
         .card:first-child { margin-left: 0; }
         .card.red { color: #d32f2f; }
         .card.hidden { background: linear-gradient(135deg, #800, #b00); border: 1px solid #fff; }
-
-        .bet-badge {
-            background: #e91e63; color: white; padding: 2px 8px; border-radius: 10px;
-            font-size: 0.7rem; font-weight: bold; margin-bottom: 2px;
-        }
-
-        /* --- 操作系 --- */
-        .controls { margin-top: auto; display: flex; flex-direction: column; gap: 6px; }
-        input[type=range] { width: 100%; height: 30px; accent-color: var(--gold); }
-        
-        button {
-            padding: 10px; border-radius: 8px; border: none; font-weight: bold;
-            font-size: 0.95rem; cursor: pointer;
-        }
+        .controls { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+        input[type=range] { width: 100%; cursor: pointer; accent-color: var(--gold); }
+        button { padding: 12px; border-radius: 10px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer; }
         .btn-hit { background: #2e7d32; color: white; }
         .btn-stand { background: #c62828; color: white; }
-        .btn-deal { background: var(--gold); color: black; padding: 14px; }
+        .btn-deal { background: var(--gold); color: black; }
         button:disabled { background: #333 !important; color: #666 !important; }
-
         #msg-overlay {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-            width: 85%; max-width: 380px; background: rgba(0,0,0,0.96);
-            border: 2px solid var(--gold); padding: 15px; border-radius: 12px;
+            width: 90%; max-width: 400px; background: rgba(0,0,0,0.96);
+            border: 2px solid var(--gold); padding: 20px; border-radius: 15px;
             z-index: 100; display: none;
         }
-        .result-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #333; font-size: 0.85rem; }
-        
+        .result-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
         .ai-thought {
             position: absolute; background: white; color: black; padding: 2px 8px;
             border-radius: 8px; font-size: 0.7rem; bottom: 105%; left: 50%;
             transform: translateX(-50%); display: none; white-space: nowrap; z-index: 20;
         }
+        .bet-badge { background: #e91e63; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; }
+        .deck-info { position: absolute; bottom: 15px; right: 20px; font-size: 0.7rem; color: rgba(255,255,255,0.5); }
     </style>
 </head>
 <body>
 
 <div id="portrait-warning">🔄<br>スマホを横向きにしてください</div>
 
-<div class="main-wrapper">
+<div class="app-container">
     <div class="table-area">
         <div id="msg-overlay" onclick="this.style.display='none'"></div>
-        <div class="pot-display">💰 場にある合計: <span id="pot-amount">0</span> CP</div>
+        <div class="pot-display">💰 合計: <span id="pot-amount">0</span> CP</div>
+        <div class="deck-info">山札残: <span id="deck-count">0</span>枚</div>
 
-        <!-- ディーラー：最上部 -->
         <div class="seat dealer-seat">
-            <div style="font-size:20px">👔</div>
+            <div style="font-size:24px">👔</div>
             <div id="dealer-score" class="score-val">?</div>
             <div id="dealer-hand" class="hand"></div>
         </div>
 
-        <!-- AI：中段 -->
         <div class="seat tom-seat">
             <div id="tom-thought" class="ai-thought"></div>
             <span id="tom-bet-display" class="bet-badge">待機中</span>
-            <div style="font-size:20px">🦊</div>
-            <div style="font-size:0.65rem; margin-bottom:2px">TOM: <span id="tom-money">1000</span></div>
+            <div style="font-size:24px">🦊</div>
+            <div style="font-size:0.7rem;">TOM: <span id="tom-money">1000</span></div>
             <div id="tom-score" class="score-val">0</div>
             <div id="tom-hand" class="hand"></div>
         </div>
@@ -146,18 +130,16 @@
         <div class="seat bob-seat">
             <div id="bob-thought" class="ai-thought"></div>
             <span id="bob-bet-display" class="bet-badge">待機中</span>
-            <div style="font-size:20px">🐻</div>
-            <div style="font-size:0.65rem; margin-bottom:2px">BOB: <span id="bob-money">1000</span></div>
+            <div style="font-size:24px">🐻</div>
+            <div style="font-size:0.7rem;">BOB: <span id="bob-money">1000</span></div>
             <div id="bob-score" class="score-val">0</div>
             <div id="bob-hand" class="hand"></div>
         </div>
 
-        <!-- プレイヤー：最下部（重なり防止のため逆順レイアウト） -->
         <div class="seat player-seat">
             <span id="player-bet-display" class="bet-badge" style="background:var(--gold); color:#000;">BET: 0</span>
             <div id="player-score" class="score-val">0</div>
             <div id="player-hand" class="hand"></div>
-            <div style="font-size:24px">👤</div>
         </div>
     </div>
 
@@ -168,10 +150,10 @@
         </div>
         
         <div class="controls">
-            <div style="text-align:center; font-size:0.75rem;">BET: <b id="bet-val">100</b></div>
+            <div style="text-align:center; font-size:0.8rem;">BET: <b id="bet-val">100</b></div>
             <input type="range" id="bet-slider" min="10" max="500" step="10" value="100" oninput="updateBet(this.value)">
             
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
                 <button id="hit-btn" class="btn-hit" onclick="playerAction('hit')" disabled>HIT</button>
                 <button id="stand-btn" class="btn-stand" onclick="playerAction('stand')" disabled>STAND</button>
             </div>
@@ -181,7 +163,36 @@
 </div>
 
 <script>
-    let deck, pot = 0, vault = 0, currentBet = 100;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+        if (type === 'deal') {
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(440, now);
+            osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+            gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.start(); osc.stop(now + 0.1);
+        } else if (type === 'win') {
+            osc.type = 'square'; [523.25, 659.25, 783.99].forEach((f, i) => osc.frequency.setValueAtTime(f, now + i * 0.1));
+            gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+            osc.start(); osc.stop(now + 0.4);
+        } else if (type === 'bust') {
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, now);
+            osc.frequency.linearRampToValueAtTime(110, now + 0.3);
+            gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+            osc.start(); osc.stop(now + 0.3);
+        } else if (type === 'bet') {
+            osc.type = 'sine'; osc.frequency.setValueAtTime(1500, now);
+            gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+            osc.start(); osc.stop(now + 0.05);
+        }
+    }
+
+    let deck = [], pot = 0, vault = 0, currentBet = 100;
     let data = {
         player: { name: 'あなた', hand: [], money: 1000, bet: 0 },
         tom: { id: 'tom', name: 'TOM', hand: [], money: 1000, bet: 0 },
@@ -189,14 +200,41 @@
         dealer: { hand: [] }
     };
 
+    // --- 【重要】現実と同じ確率のデッキ生成とシャッフル ---
+    function initDeck() {
+        const suits = ['♠','♥','♦','♣'];
+        const vals = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+        let newDeck = [];
+        for(let s of suits) {
+            for(let v of vals) {
+                newDeck.push({
+                    s, v, 
+                    w: (v === 'A' ? 11 : (['J','Q','K'].includes(v) ? 10 : parseInt(v))), 
+                    c: (s === '♥' || s === '♦') ? 'red' : 'black'
+                });
+            }
+        }
+        // フィッシャー–イェーツのシャッフル (現実的な公平な混ざり方)
+        for (let i = newDeck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
+        }
+        return newDeck;
+    }
+
+    function drawCard() {
+        if (deck.length < 10) deck = [...deck, ...initDeck()]; // 残り少なくなったら新しいデッキを追加
+        const card = deck.pop();
+        document.getElementById('deck-count').innerText = deck.length;
+        return card;
+    }
+
     function updateBet(v) { currentBet = parseInt(v); document.getElementById('bet-val').innerText = v; }
-    
     function refreshPot() {
         const total = data.player.bet + data.tom.bet + data.bob.bet;
         document.getElementById('pot-amount').innerText = total;
         return total;
     }
-
     function updateStats() {
         document.getElementById('player-total').innerText = data.player.money;
         document.getElementById('tom-money').innerText = data.tom.money;
@@ -204,7 +242,6 @@
         document.getElementById('dealer-vault').innerText = vault;
         refreshPot();
     }
-
     function calc(hand) {
         let s = hand.reduce((a, b) => a + b.w, 0);
         let aces = hand.filter(c => c.v === 'A').length;
@@ -219,13 +256,15 @@
             ai.bet = Math.floor(Math.random() * Math.min(ai.money, 200) / 10 + 2) * 10;
             ai.money -= ai.bet;
             badge.innerText = "BET: " + ai.bet;
+            playSound('bet');
         } else {
             bubble.style.display = 'block';
             while(calc(ai.hand) < 17) {
                 bubble.innerText = "HIT!"; await new Promise(r => setTimeout(r, 900));
-                ai.hand.push(deck.pop()); updateUI();
+                ai.hand.push(drawCard()); playSound('deal'); updateUI();
             }
             bubble.innerText = calc(ai.hand) > 21 ? "BUST!" : "STAND";
+            if(calc(ai.hand) > 21) playSound('bust');
             await new Promise(r => setTimeout(r, 1200));
             bubble.style.display = 'none';
         }
@@ -234,6 +273,9 @@
 
     async function startRound() {
         if(data.player.money < currentBet) return alert("チップが足りません！");
+        if(deck.length === 0) deck = initDeck();
+        
+        playSound('bet');
         document.getElementById('deal-btn').disabled = true;
         document.getElementById('msg-overlay').style.display = "none";
         
@@ -243,19 +285,13 @@
 
         await aiThink(data.tom, 'bet');
         await aiThink(data.bob, 'bet');
-        
-        deck = [];
-        const suits = ['♠','♥','♦','♣'];
-        const vals = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-        for(let s of suits) for(let v of vals) deck.push({s, v, w: (parseInt(v)||10), c: (s==='♥'||s==='♦')?'red':'black'});
-        deck.filter(c => c.v === 'A').forEach(c => c.w = 11);
-        deck.sort(() => Math.random() - 0.5);
 
-        data.player.hand = [deck.pop(), deck.pop()];
-        data.tom.hand = [deck.pop(), deck.pop()];
-        data.bob.hand = [deck.pop(), deck.pop()];
-        data.dealer.hand = [deck.pop(), deck.pop()];
+        data.player.hand = [drawCard(), drawCard()];
+        data.tom.hand = [drawCard(), drawCard()];
+        data.bob.hand = [drawCard(), drawCard()];
+        data.dealer.hand = [drawCard(), drawCard()];
         
+        playSound('deal');
         updateUI();
         document.getElementById('hit-btn').disabled = false;
         document.getElementById('stand-btn').disabled = false;
@@ -266,7 +302,7 @@
             const h = data[k].hand; if(!h) continue;
             document.getElementById(`${k}-hand`).innerHTML = h.map((c, i) => 
                 `<div class="card ${c.c} ${k==='dealer'&&!showAll&&i===0?'hidden':''}">
-                ${k==='dealer'&&!showAll&&i===0 ? '' : `<div>${c.v}</div><div style="font-size:1.1rem; align-self:center">${c.s}</div><div style="transform:rotate(180deg)">${c.v}</div>`}
+                ${k==='dealer'&&!showAll&&i===0 ? '' : `<div>${c.v}</div><div style="font-size:1.2rem; align-self:center">${c.s}</div><div style="transform:rotate(180deg)">${c.v}</div>`}
                 </div>`).join('');
             document.getElementById(`${k}-score`).innerText = (k==='dealer'&&!showAll) ? "?" : calc(h);
         }
@@ -274,46 +310,46 @@
 
     function playerAction(t) {
         if(t === 'hit') {
-            data.player.hand.push(deck.pop()); updateUI();
-            if(calc(data.player.hand) > 21) finalize();
+            data.player.hand.push(drawCard()); 
+            playSound('deal');
+            updateUI();
+            if(calc(data.player.hand) > 21) { playSound('bust'); finalize(); }
         } else { finalize(); }
     }
 
     async function finalize() {
         document.getElementById('hit-btn').disabled = true;
         document.getElementById('stand-btn').disabled = true;
-        
         await aiThink(data.tom, 'play');
         await aiThink(data.bob, 'play');
-
-        // ディーラーのターン：じっくり見せる
         updateUI(true);
-        await new Promise(r => setTimeout(r, 1500)); // 公開して一呼吸
-
+        await new Promise(r => setTimeout(r, 1000));
         while(calc(data.dealer.hand) < 17) {
-            data.dealer.hand.push(deck.pop()); updateUI(true);
-            await new Promise(r => setTimeout(r, 1500)); // 1.5秒間隔でカードを引く
+            data.dealer.hand.push(drawCard()); 
+            playSound('deal');
+            updateUI(true);
+            await new Promise(r => setTimeout(r, 1000));
         }
-        
-        await new Promise(r => setTimeout(r, 1200)); // 精算前のタメ
-
         const ds = calc(data.dealer.hand);
         const currentPot = refreshPot();
-        let winners = [], pushers = [], totalRefund = 0;
+        let winners = [], totalRefund = 0;
         let logHtml = `<div style="color:var(--gold); font-weight:bold; border-bottom:1px solid var(--gold); margin-bottom:12px; text-align:center;">ROUND RESULT</div>`;
 
+        let playerWon = false;
         for(let k of ['player', 'tom', 'bob']) {
             const sc = calc(data[k].hand);
             const b = data[k].bet;
-            if (sc <= 21 && (ds > 21 || sc > ds)) winners.push(k);
-            else if (sc <= 21 && sc === ds) {
-                pushers.push(k); data[k].money += b; totalRefund += b;
+            if (sc <= 21 && (ds > 21 || sc > ds)) {
+                winners.push(k);
+                if(k === 'player') playerWon = true;
+            } else if (sc <= 21 && sc === ds) {
+                data[k].money += b; totalRefund += b;
                 logHtml += `<div class="result-item"><span>${data[k].name}</span><span style="color:#2196f3">PUSH</span></div>`;
             } else {
                 logHtml += `<div class="result-item"><span>${data[k].name}</span><span style="color:#888">LOSE</span></div>`;
             }
         }
-
+        if(playerWon) playSound('win');
         let remainingPot = currentPot - totalRefund;
         if (winners.length > 0) {
             const share = Math.floor(remainingPot / winners.length);
@@ -325,11 +361,8 @@
             vault += remainingPot;
             logHtml += `<div class="result-item"><span>CASINO</span><span style="color:#4caf50">PROFIT (+${remainingPot})</span></div>`;
         }
-
-        const overlay = document.getElementById('msg-overlay');
-        overlay.innerHTML = logHtml + `<div style="margin-top:10px; text-align:center; font-size:0.7rem; opacity:0.5;">[ TAP TO CLOSE ]</div>`;
-        overlay.style.display = "block";
-        
+        document.getElementById('msg-overlay').innerHTML = logHtml + `<div style="margin-top:10px; text-align:center; font-size:0.7rem; opacity:0.5;">[ TAP TO CLOSE ]</div>`;
+        document.getElementById('msg-overlay').style.display = "block";
         data.player.bet = data.tom.bet = data.bob.bet = 0;
         updateStats();
         document.getElementById('deal-btn').disabled = false;
