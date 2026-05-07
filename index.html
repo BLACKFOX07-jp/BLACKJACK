@@ -26,15 +26,28 @@
             max-width: 1400px; max-height: 850px;
             background: #000; position: relative;
         }
-        @media screen and (orientation: portrait) {
-            #portrait-warning { display: flex; }
-            .app-container { display: none; }
-        }
+
+        /* --- 画面向き制御 --- */
         #portrait-warning {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #111; z-index: 9999; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
+            background: #111; 
+            z-index: 9999; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            text-align: center;
+            color: white;
         }
+
+        @media screen and (orientation: portrait) {
+            #portrait-warning { display: flex !important; }
+            .app-container { display: none !important; }
+        }
+
+        /* --- テーブル・レイアウト --- */
         .table-area {
             flex: 1; position: relative; background: var(--table-green);
             border: 8px solid var(--wood); border-radius: 20px;
@@ -49,6 +62,7 @@
         @media (max-height: 500px) {
             .sidebar { width: 160px; padding: 8px; }
             .btn-deal { padding: 10px !important; }
+            .score-val { font-size: 0.7rem !important; }
         }
         .stats-header {
             font-size: 0.9rem; border-bottom: 1px solid var(--gold);
@@ -79,6 +93,8 @@
         .card:first-child { margin-left: 0; }
         .card.red { color: #d32f2f; }
         .card.hidden { background: linear-gradient(135deg, #800, #b00); border: 1px solid #fff; }
+        
+        /* --- UIパーツ --- */
         .controls { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
         input[type=range] { width: 100%; cursor: pointer; accent-color: var(--gold); }
         button { padding: 12px; border-radius: 10px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer; }
@@ -104,7 +120,11 @@
 </head>
 <body>
 
-<div id="portrait-warning">🔄<br>スマホを横向きにしてください</div>
+<div id="portrait-warning">
+    <div style="font-size: 50px; margin-bottom: 20px;">📱🔄</div>
+    <div style="font-size: 1.2rem; font-weight: bold;">画面を横向きにしてください</div>
+    <div style="font-size: 0.8rem; margin-top: 10px; color: #888;">（自動回転設定をオンにしてください）</div>
+</div>
 
 <div class="app-container">
     <div class="table-area">
@@ -200,7 +220,6 @@
         dealer: { hand: [] }
     };
 
-    // --- 【重要】現実と同じ確率のデッキ生成とシャッフル ---
     function initDeck() {
         const suits = ['♠','♥','♦','♣'];
         const vals = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
@@ -214,7 +233,6 @@
                 });
             }
         }
-        // フィッシャー–イェーツのシャッフル (現実的な公平な混ざり方)
         for (let i = newDeck.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
@@ -223,18 +241,20 @@
     }
 
     function drawCard() {
-        if (deck.length < 10) deck = [...deck, ...initDeck()]; // 残り少なくなったら新しいデッキを追加
+        if (deck.length < 10) deck = [...deck, ...initDeck()];
         const card = deck.pop();
         document.getElementById('deck-count').innerText = deck.length;
         return card;
     }
 
     function updateBet(v) { currentBet = parseInt(v); document.getElementById('bet-val').innerText = v; }
+    
     function refreshPot() {
         const total = data.player.bet + data.tom.bet + data.bob.bet;
         document.getElementById('pot-amount').innerText = total;
         return total;
     }
+
     function updateStats() {
         document.getElementById('player-total').innerText = data.player.money;
         document.getElementById('tom-money').innerText = data.tom.money;
@@ -242,6 +262,7 @@
         document.getElementById('dealer-vault').innerText = vault;
         refreshPot();
     }
+
     function calc(hand) {
         let s = hand.reduce((a, b) => a + b.w, 0);
         let aces = hand.filter(c => c.v === 'A').length;
